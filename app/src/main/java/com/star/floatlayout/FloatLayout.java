@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -36,7 +37,7 @@ public class FloatLayout extends LinearLayout {
 	private ViewGroup mInnerScrollview;
 
 	private OverScroller mScroller;
-	private VelocityTracker mVelocityTracker;
+	private VelocityTracker mVelocityTracker;//用跟踪触摸屏事件（flinging事件和其他gestures手势事件）的速率
 	private int mTouchSlop;
 	private int mMaximumVelocity, mMinimumVelocity;
 
@@ -58,11 +59,16 @@ public class FloatLayout extends LinearLayout {
 		mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 		mMaximumVelocity = ViewConfiguration.get(context).getScaledMaximumFlingVelocity();
 		mMinimumVelocity = ViewConfiguration.get(context).getScaledMinimumFlingVelocity();
+		Log.i("aa","mTouchSlop="+mTouchSlop);//24
+		Log.i("aa","mMaximumVelocity="+mMaximumVelocity);//24000
+		Log.i("aa","mMinimumVelocity="+mMinimumVelocity);//150
+
 
 	}
 
 	@Override
 	protected void onFinishInflate() {
+		Log.i("aa","onFinishInflate");
 		super.onFinishInflate();
 		mHeaderLayout = (RelativeLayout) findViewById(R.id.float_layout_top);
 		mFloatLayout = (LinearLayout) findViewById(R.id.float_layout_float);
@@ -71,19 +77,26 @@ public class FloatLayout extends LinearLayout {
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		Log.i("aa","onMeasure");
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		ViewGroup.LayoutParams layoutParams = mContent.getLayoutParams();
 		layoutParams.height = getMeasuredHeight() - mFloatLayout.getMeasuredHeight();
+//		Log.i("aa","getMeasuredHeight()="+getMeasuredHeight());
+//		Log.i("aa","mFloatLayout.getMeasuredHeight()="+mFloatLayout.getMeasuredHeight());
+//		Log.i("aa","layoutParams.height="+layoutParams.height);
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		Log.i("aa","onSizeChanged");
 		super.onSizeChanged(w, h, oldw, oldh);
 		mHeaderHeight = mHeaderLayout.getMeasuredHeight();
+//		Log.i("aa","mHeaderHeight="+mHeaderHeight);
 	}
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
+		Log.i("aa","dispatchTouchEvent");
 		int action = ev.getAction();
 		float y = ev.getY();
 		switch (action) {
@@ -112,6 +125,7 @@ public class FloatLayout extends LinearLayout {
 	}
 
 	private boolean dispatchInnerChild(MotionEvent ev) {
+
 		ev.setAction(MotionEvent.ACTION_CANCEL);
 		MotionEvent newMotionEvent = MotionEvent.obtain(ev);
 		dispatchTouchEvent(ev);
@@ -124,6 +138,7 @@ public class FloatLayout extends LinearLayout {
 	 */
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		Log.i("aa","onInterceptTouchEvent");
 		int action = ev.getAction();
 		float y = ev.getY();
 		switch (action) {
@@ -169,6 +184,7 @@ public class FloatLayout extends LinearLayout {
 	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		Log.i("aa","onTouchEvent");
 		initVelocityTracker();
 		mVelocityTracker.addMovement(event);
 		int action = event.getAction();
@@ -199,6 +215,9 @@ public class FloatLayout extends LinearLayout {
 			break;
 		case MotionEvent.ACTION_UP:
 			isDragging = false;
+			// 用addMovement(MotionEvent)函数将Motion event加入到VelocityTracker类实例中.
+			// 你可以使用getXVelocity() 或getXVelocity()获得横向和竖向的速率到速率时，
+			// 但是使用它们之前请先调用computeCurrentVelocity(int)来初始化速率的单位 。
 			mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
 			int velocity = (int) mVelocityTracker.getYVelocity();
 			if (Math.abs(velocity) > mMinimumVelocity) {
@@ -224,6 +243,7 @@ public class FloatLayout extends LinearLayout {
 	 */
 	@Override
 	public void scrollTo(int x, int y) {
+		Log.i("aa","scrollTo");
 		y = (y < 0) ? 0 : y;
 		y = (y > mHeaderHeight) ? mHeaderHeight : y;
 		if (y != getScrollY()) {
@@ -234,6 +254,7 @@ public class FloatLayout extends LinearLayout {
 
 	@Override
 	public void computeScroll() {
+		Log.i("aa","computeScroll");
 		if (mScroller.computeScrollOffset()) {
 			scrollTo(0, mScroller.getCurrY());
 			invalidate();
